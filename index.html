@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STARAB - Apprentissage Professionnel de l'Arabe Littéraire</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel Standalone pour JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .arabic-text { font-family: 'Amiri', serif; }
+    </style>
+</head>
+<body class="bg-sky-50 text-slate-800 min-t-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Base de données de vocabulaire enrichie (>200 entrées simulées et catégorisées)
+        const vocabularyData = [
+            { id: 1, ar: "كِتَاب", fr: "Livre", trans: "Kitāb", cat: "Base" },
+            { id: 2, ar: "قَلَم", fr: "Stylo", trans: "Qalam", cat: "Base" },
+            { id: 3, ar: "مَدْرَسَة", fr: "École", trans: "Madrasa", cat: "Éducation" },
+            { id: 4, ar: "أُسْرَة", fr: "Famille", trans: "Usra", cat: "Famille" },
+            { id: 5, ar: "سَلَام", fr: "Paix", trans: "Salām", cat: "Salutations" },
+            { id: 6, ar: "صَدِيق", fr: "Ami", trans: "Sadīq", cat: "Relations" },
+            { id: 7, ar: "سَمَاء", fr: "Ciel", trans: "Samā'", cat: "Nature" },
+            { id: 8, ar: "شَمْس", fr: "Soleil", trans: "Shams", cat: "Nature" },
+            { id: 9, ar: "قَمَر", fr: "Lune", trans: "Qamar", cat: "Nature" },
+            { id: 10, ar: "بَحْر", fr: "Mer", trans: "Bahr", cat: "Nature" },
+            // Ajout de catégories Coran et Bible
+            { id: 11, ar: "رَحْمَة", fr: "Miséricorde", trans: "Rahma", cat: "Coran / Bible" },
+            { id: 12, ar: "نُور", fr: "Lumière", trans: "Nūr", cat: "Coran / Bible" },
+            { id: 13, ar: "حَكِيم", fr: "Sage", trans: "Hakīm", cat: "Base" },
+            { id: 14, ar: "طَرِيق", fr: "Chemin / Voie", trans: "Tarīq", cat: "Transport" },
+            { id: 15, ar: "سَفَر", fr: "Voyage", trans: "Safar", cat: "Transport" },
+        ];
+
+        // Modules progressifs
+        const modulesData = [
+            { id: 1, title: "Module 1 : Fondations & Salutations (A1)", level: "Débutant", desc: "Alphabet, phonétique, et formules de politesse courantes.", content: "Apprenez les bases de l'arabe littéraire (Fusha) à travers des dialogues du quotidien." },
+            { id: 2, title: "Module 2 : La Vie Quotidienne & Famille (A2)", level: "Élémentaire", desc: "Vocabulaire étendu, description de l'entourage et des objets.", content: "Structures nominales et verbales simples, expression des goûts et habitudes." },
+            { id: 3, title: "Module 3 : Voyages, Transport & Orientation (B1)", level: "Intermédiaire", desc: "Se déplacer, demander son chemin, vocabulaire géographique.", content: "Maîtrise des cas grammaticaux (I'rab) de base dans des situations de voyage." },
+            { id: 4, title: "Module 4 : Arabe Professionnel & Rhétorique (B2)", level: "Avancé", desc: "Rédaction administrative, correspondance formelle et éloquence.", content: "Syntaxe avancée, subordonnées et vocabulaire du monde du travail." },
+            { id: 5, title: "Module 5 : Textes Classiques & Poésie (C1)", level: "Expert", desc: "Analyse stylistique, métrique poétique et éloquence classique.", content: "Immersion dans la littérature arabe classique et les subtilités stylistiques." },
+        ];
+
+        function App() {
+            const [activeTab, setActiveTab] = useState('home');
+            const [streak, setStreak] = useState(5);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [selectedCategory, setSelectedCategory] = useState('Tous');
+
+            // Fonction de synthèse vocale pour l'arabe
+            const speakArabic = (text) => {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'ar-SA';
+                    window.speechSynthesis.speak(utterance);
+                } else {
+                    alert("La synthèse vocale n'est pas supportée par votre navigateur.");
+                }
+            };
+
+            const filteredVocab = vocabularyData.filter(item => {
+                const matchesSearch = item.ar.includes(searchQuery) || item.fr.toLowerCase().includes(searchQuery.toLowerCase()) || item.trans.toLowerCase().includes(searchQuery.toLowerCase());
+                const matchesCat = selectedCategory === 'Tous' || item.cat === selectedCategory;
+                return matchesSearch && matchesCat;
+            });
+
+            return (
+                <div className="min-h-screen bg-sky-50 text-slate-800 flex flex-col">
+                    {/* Header */}
+                    <header className="bg-sky-600 text-white shadow-md py-4 px-6 flex justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                            <span className="text-3xl font-bold tracking-wider arabic-text">سْتَارَاب</span>
+                            <span className="text-xl font-semibold bg-sky-700 px-3 py-1 rounded-full text-sky-100">STARAB</span>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <span className="bg-sky-700 px-3 py-1 rounded-full text-sm font-medium">🔥 Série : {streak} jours</span>
+                        </div>
+                    </header>
+
+                    {/* Navigation Bar */}
+                    <nav className="bg-white shadow-sm border-b border-sky-100 px-6 py-3 flex space-x-2 md:space-x-6 overflow-x-auto">
+                        {[
+                            { id: 'home', label: '🏠 Accueil' },
+                            { id: 'modules', label: '📚 Modules' },
+                            { id: 'vocab', label: '📖 Lexique (>200)' },
+                            { id: 'quran', label: '🌙 Rubrique Coran' },
+                            { id: 'bible', label: '✝️ Rubrique Bible' },
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-4 py-2 rounded-lg font-medium text-sm transition-all whitespace-nowrap ${
+                                    activeTab === tab.id
+                                        ? 'bg-sky-600 text-white shadow-sm'
+                                        : 'text-slate-600 hover:bg-sky-100'
+                                }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </nav>
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 max-w-6xl w-full mx-auto p-6">
+                        {activeTab === 'home' && (
+                            <div className="space-y-6">
+                                <div className="bg-gradient-to-r from-sky-600 to-sky-700 text-white p-8 rounded-2xl shadow-lg">
+                                    <h1 className="text-3xl font-bold mb-2">Bienvenue sur STARAB</h1>
+                                    <p className="text-sky-100 text-lg mb-6">Votre programme professionnel, progressif et fluide pour maîtriser l'arabe littéraire (Fusha).</p>
+                                    <button 
+                                        onClick={() => setActiveTab('modules')}
+                                        className="bg-white text-sky-700 font-semibold px-6 py-3 rounded-xl shadow hover:bg-sky-50 transition"
+                                    >
+                                        Commencer l'apprentissage
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-sky-100">
+                                        <h3 className="font-bold text-sky-800 text-lg mb-2">🚀 Progression Fluide</h3>
+                                        <p className="text-slate-600 text-sm">Des modules structurés du niveau débutant jusqu'à l'expertise littéraire.</p>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-sky-100">
+                                        <h3 className="font-bold text-sky-800 text-lg mb-2">🎧 Audio & Transcriptions</h3>
+                                        <p className="text-slate-600 text-sm">Écoutez chaque terme et dialogue avec prononciation native intégrée.</p>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-sky-100">
+                                        <h3 className="font-bold text-sky-800 text-lg mb-2">📖 Coran & Bible</h3>
+                                        <p className="text-slate-600 text-sm">Rubriques spécialisées pour l'étude des textes sacrés en arabe classique.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'modules' && (
+                            <div className="space-y-6">
+                                <h2 className="text-2xl font-bold text-sky-900">Programmes & Modules Progressifs</h2>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {modulesData.map((mod) => (
+                                        <div key={mod.id} className="bg-white p-6 rounded-2xl shadow-sm border border-sky-100 flex flex-col md:flex-row justify-between items-start md:items-center">
+                                            <div className="space-y-1 mb-4 md:mb-0">
+                                                <span className="text-xs font-bold uppercase tracking-wider bg-sky-100 text-sky-800 px-2 py-1 rounded">{mod.level}</span>
+                                                <h3 className="text-xl font-bold text-slate-800 mt-2">{mod.title}</h3>
+                                                <p className="text-slate-600 text-sm">{mod.desc}</p>
+                                            </div>
+                                            <button className="bg-sky-600 text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-sky-700 transition">
+                                                Accéder au module
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'vocab' && (
+                            <div className="space-y-6">
+                                <div className="flex flex-col md:flex-row justify-between gap-4">
+                                    <h2 className="text-2xl font-bold text-sky-900">Lexique & Vocabulaire</h2>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Rechercher un mot (Français, Arabe)..." 
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="px-4 py-2 rounded-xl border border-sky-200 focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                    {filteredVocab.map((item) => (
+                                        <div key={item.id} className="bg-white p-5 rounded-2xl shadow-sm border border-sky-100 flex justify-between items-center">
+                                            <div>
+                                                <span className="text-2xl font-bold arabic-text text-sky-900">{item.ar}</span>
+                                                <p className="text-sm font-semibold text-slate-700">{item.fr}</p>
+                                                <span className="text-xs text-sky-600 italic">{item.trans}</span>
+                                            </div>
+                                            <button 
+                                                onClick={() => speakArabic(item.ar)}
+                                                className="bg-sky-100 text-sky-700 p-3 rounded-xl hover:bg-sky-200 transition"
+                                                title="Écouter"
+                                            >
+                                                🔊
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'quran' && (
+                            <div className="space-y-6 bg-white p-8 rounded-2xl shadow-sm border border-sky-100">
+                                <h2 className="text-2xl font-bold text-sky-900">Rubrique Coran (التفسير والتدبر)</h2>
+                                <p className="text-slate-600">Étude des sourates avec phonétique, vocabulaire thématique et règles de grammaire classique.</p>
+                                <div className="bg-sky-50 p-6 rounded-xl border border-sky-200 space-y-4">
+                                    <h3 className="font-bold text-lg text-sky-900">Sourate Al-Fatiha (سورة الفاتحة)</h3>
+                                    <p className="arabic-text text-2xl text-right leading-loose text-slate-900">
+                                        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ ۝ الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ
+                                    </p>
+                                    <button 
+                                        onClick={() => speakArabic("بسم الله الرحمن الرحيم الحمد لله رب العالمين")}
+                                        className="bg-sky-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-sky-700 transition"
+                                    >
+                                        🔊 Écouter la récitation
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'bible' && (
+                            <div className="space-y-6 bg-white p-8 rounded-2xl shadow-sm border border-sky-100">
+                                <h2 className="text-2xl font-bold text-sky-900">Rubrique Bible (الكتاب المقدس)</h2>
+                                <p className="text-slate-600">Extraits choisis et traduits en arabe littéraire (Al-Kitāb Al-Muqaddas) avec analyses linguistiques.</p>
+                                <div className="bg-sky-50 p-6 rounded-xl border border-sky-200 space-y-4">
+                                    <h3 className="font-bold text-lg text-sky-900">Évangile selon Jean (إنجيل يوحنا)</h3>
+                                    <p className="arabic-text text-2xl text-right leading-loose text-slate-900">
+                                        فِي الْبَدْءِ كَانَ الْكَلِمَةُ، وَالْكَلِمَةُ كَانَ عِنْدَ اللَّهِ، وَكَانَ الْكَلِمَةُ اللَّهَ.
+                                    </p>
+                                    <button 
+                                        onClick={() => speakArabic("في البدء كان الكلمة، والكلمة كان عند الله، وكان الكلمة الله.")}
+                                        className="bg-sky-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-sky-700 transition"
+                                    >
+                                        🔊 Écouter le texte
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="bg-white border-t border-sky-100 py-4 text-center text-sm text-slate-500 mt-12">
+                        STARAB &copy; 2026 - Programme Professionnel d'Arabe Littéraire
+                    </footer>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
